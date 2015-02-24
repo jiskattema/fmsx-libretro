@@ -46,6 +46,7 @@ static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static struct retro_perf_callback perf_cb = {};
 
 static retro_perf_tick_t max_frame_ticks = 0;
+static unsigned int js12_state;
 
 
 typedef struct
@@ -153,12 +154,12 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb = cb;
    static const struct retro_controller_description port[] = {
       { "RetroKeyboard", RETRO_DEVICE_KEYBOARD },
-//      { "RetroPad", RETRO_DEVICE_JOYPAD }
+      { "RetroPad", RETRO_DEVICE_JOYPAD },
    };
 
    static const struct retro_controller_info ports[] = {
-      { port, 1 },
-//      { port, 1 },
+      { port, 2 },
+      { port, 2 },
       { 0 },
    };
    static const struct retro_variable vars[] = {
@@ -167,9 +168,27 @@ void retro_set_environment(retro_environment_t cb)
       { "fmsx_mapper_type_mode", "MSX Mapper Type Mode; Guess Mapper Type A|Guess Mapper Type B" },
       { NULL, NULL },
    };
+   struct retro_input_descriptor desc[] = {
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Mouse Left" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Mouse Up" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Mouse Down" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Mouse Right" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Primary fire" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Seondary fire" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "F1" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "F2" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "F3" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "F4" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,    "F5" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,    "Spacebar" },
+
+      { 0 },
+   };
 
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+
+   environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
@@ -370,7 +389,13 @@ unsigned int WriteAudio(sample *Data,unsigned int Length)
 
 unsigned int Joystick(void)
 {
-   return 0;
+    /** Joystick() ***********************************************/
+    /** Query positions of two joystick connected to ports 0/1. **/
+    /** Returns 0.0.B2.A2.R2.L2.D2.U2.0.0.B1.A1.R1.L1.D1.U1.    **/
+    /************************************ TO BE WRITTEN BY USER **/
+
+   return js12_state;
+
 }
 
 void Keyboard(void)
@@ -443,6 +468,22 @@ void retro_run(void)
    for (i=0; i < sizeof(keymap)/sizeof(keymap_t); i++)
       if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, keymap[i].retro))
          KBD_SET(keymap[i].fmsx);
+
+   js12_state = 0;
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0,  RETRO_DEVICE_ID_JOYPAD_UP    )) js12_state |= JST_UP;
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0,  RETRO_DEVICE_ID_JOYPAD_DOWN  )) js12_state |= JST_DOWN;
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0,  RETRO_DEVICE_ID_JOYPAD_LEFT  )) js12_state |= JST_LEFT;
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0,  RETRO_DEVICE_ID_JOYPAD_RIGHT )) js12_state |= JST_RIGHT;
+
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A )     ) js12_state |= JST_FIREA;
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B )     ) js12_state |= JST_FIREB;
+
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X ) ) KBD_SET(KBD_F1);
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y ) ) KBD_SET(KBD_F2);
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L ) ) KBD_SET(KBD_F3);
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R ) ) KBD_SET(KBD_F4);
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2 ) ) KBD_SET(KBD_F5);
+   if (input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3 ) ) KBD_SET(KBD_SPACE);
 
 
    RETRO_PERFORMANCE_INIT(core_retro_run);
