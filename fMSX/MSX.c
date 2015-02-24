@@ -2964,6 +2964,24 @@ int LoadCart(const char *FileName,int Slot,int Type)
   if(Size+(DataSize)>MaxSize) return(0); \
   else Size+=(DataSize)
 
+
+/** SaveStateSize() ******************************************/
+/** return the size of a save state                         **/
+/** Return size                                             **/
+/*************************************************************/
+size_t SaveStateSize(void) {
+  return sizeof(CPU) + \
+         sizeof(PPI) + \
+         sizeof(VDP) + \
+         sizeof(VDPStatus) + \
+         sizeof(Palette) + \
+         sizeof(PSG) + \
+         sizeof(OPLL) + \
+         sizeof(SCChip) + \
+         256 * sizeof(unsigned int) + \
+         (RAMPages + VRAMPages) * 0x4000;
+}
+
 /** SaveState() **********************************************/
 /** Save emulation state to a memory buffer. Returns size   **/
 /** on success, 0 on failure.                               **/

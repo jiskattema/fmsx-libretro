@@ -208,7 +208,7 @@ void retro_reset(void)
 
 size_t retro_serialize_size(void)
 {
-   return 0x40000;
+  return SaveStateSize();
 }
 
 bool retro_serialize(void *data, size_t size)
