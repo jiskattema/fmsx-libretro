@@ -312,7 +312,14 @@ bool retro_load_game(const struct retro_game_info *info)
    UPeriod=100;
 
    strcpy(ROMName_buffer[0], info->path);
-   ROMName[0]=ROMName_buffer[0];
+   if (strcasestr( ROMName_buffer[0], ".DSK"))
+   {
+      DSKName[0]=ROMName_buffer[0];
+   }
+   else
+   {
+      ROMName[0]=ROMName_buffer[0];
+   }
    SETJOYTYPE(0,1);
 //   ProgDir=".";
 
